@@ -8,22 +8,23 @@ namespace FallendeBloecke.Models
 {
     public class ResourceManager
     {
-        public static Dictionary<string, Texture2D> Textures = new();
+        public static Dictionary<string, Texture2D> Texturen = new();
 
-        public static void LoadTexture(string path, string name)
+        public static void LoadTexture(string pfad, string name)
         {
-            Textures.Add(name, Raylib.LoadTexture(path));
+            Texturen.Add(name, Raylib.LoadTexture(pfad));
         }
 
         public static Texture2D GetTexture(string name)
         {
-            Texture2D texture;
-            if (Textures.TryGetValue(name, out texture))
+            Texture2D textur;
+            if (Texturen.TryGetValue(name, out textur))
             {
-                return texture;
+                return textur;
             }
-            Console.WriteLine("[ERROR]: Failed to get Texture: '" + name + "'");
-            return texture;
+            Console.WriteLine("[ERROR]: Textur '"  + name + "' wurde nicht gefunden");
+
+            return textur;
         }
     }
 }

@@ -5,31 +5,31 @@ using System.Text;
 
 namespace FallendeBloecke.Shapes
 {
-    public enum Direction { North, East, South, West };
+    public enum Richtung { North, East, South, West };
 
-    public struct Edge
+    public struct Kante
     {
         public Vector2 Start;
         public Vector2 End;
-        public Direction Dir;
+        public Richtung eRichtung;
 
-        public Edge(Vector2 start, Vector2 end, Direction dir)
+        public Kante(Vector2 start, Vector2 end, Richtung dir)
         {
             this.Start = start;
             this.End = end;
-            this.Dir = dir;
+            this.eRichtung = dir;
         }
-        public static string GetDirectionString(Direction side)
+        public static string GetDirectionString(Richtung side)
         {
             switch (side)
             {
-                case Direction.North:
+                case Richtung.North:
                     return "North";
-                case Direction.East:
+                case Richtung.East:
                     return "East";
-                case Direction.South:
+                case Richtung.South:
                     return "South";
-                case Direction.West:
+                case Richtung.West:
                     return "West";
                 default:
                     return "Unknown";

@@ -11,28 +11,27 @@ namespace FallendeBloecke.Models
     public class Block
     {
         public Vector2 Position;
-        public Vector2 Size;
-        public Color BlockColor;
-        public Texture2D Texture;
+        public Vector2 Größe = Common.BlockSize;
+        public Color Farbton;
+        public Texture2D Textur;
 
-        public Block(Vector2 pos, Vector2 size, Color blockColor, Texture2D texture)
+        public Block(Vector2 pos, Color colorTint, Texture2D textur)
         {
             this.Position = pos;
-            this.Size = size;
-            this.BlockColor = blockColor;
-            this.Texture = texture;
+            this.Farbton = colorTint;
+            this.Textur = textur;
         }
-        public Edge GetEdge(Direction side)
+        public Kante HolKante(Richtung side)
         {
             switch (side)
             {
-                case Direction.North:
+                case Richtung.North:
                     return GetNorthEdge();
-                case Direction.East:
+                case Richtung.East:
                     return GetEastEdge();
-                case Direction.South:
+                case Richtung.South:
                     return GetSouthEdge();
-                case Direction.West:
+                case Richtung.West:
                     return GetWestEdge();
                 default:
                     Console.WriteLine("[ERROR]: Failed to get side " + side + ", from block!");
@@ -40,32 +39,32 @@ namespace FallendeBloecke.Models
             }
         }
 
-        public Edge GetNorthEdge()
+        public Kante GetNorthEdge()
         {
-            return new Edge(new Vector2(Position.X, Position.Y), new Vector2(Position.X + Common.BlockSize.X, Position.Y), Direction.North);
+            return new Kante(new Vector2(Position.X, Position.Y), new Vector2(Position.X + Common.BlockSize.X, Position.Y), Richtung.North);
         }
-        public Edge GetEastEdge()
+        public Kante GetEastEdge()
         {
-            return new Edge(new Vector2(Position.X + Common.BlockSize.X, Position.Y), new Vector2(Position.X + Common.BlockSize.X, Position.Y + Common.BlockSize.Y), Direction.East);
+            return new Kante(new Vector2(Position.X + Common.BlockSize.X, Position.Y), new Vector2(Position.X + Common.BlockSize.X, Position.Y + Common.BlockSize.Y), Richtung.East);
         }
-        public Edge GetSouthEdge()
+        public Kante GetSouthEdge()
         {
-            return new Edge(new Vector2(Position.X, Position.Y + Common.BlockSize.Y), new Vector2(Position.X + Common.BlockSize.X, Position.Y + Common.BlockSize.Y), Direction.South);
+            return new Kante(new Vector2(Position.X, Position.Y + Common.BlockSize.Y), new Vector2(Position.X + Common.BlockSize.X, Position.Y + Common.BlockSize.Y), Richtung.South);
         }
-        public Edge GetWestEdge()
+        public Kante GetWestEdge()
         {
-            return new Edge(new Vector2(Position.X, Position.Y), new Vector2(Position.X, Position.Y + Common.BlockSize.Y), Direction.West);
+            return new Kante(new Vector2(Position.X, Position.Y), new Vector2(Position.X, Position.Y + Common.BlockSize.Y), Richtung.West);
         }
 
         public Vector2 GetOrigin()
         {
-            return new Vector2(Position.X - 0.5f * Size.X, Position.Y + 0.5f * Size.Y);
+            return new Vector2(Position.X - 0.5f * Größe.X, Position.Y + 0.5f * Größe.Y);
         }
 
         public void Draw()
         {
             // Raylib.DrawRectangleLines((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y, BlockColor);
-            Raylib.DrawTextureRec(Texture, new Rectangle(Position, Size),Position, BlockColor);
+            Raylib.DrawTextureRec(Textur, new Rectangle(Position, Größe),Position, Farbton);
         }
 
     }

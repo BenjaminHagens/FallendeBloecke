@@ -15,5 +15,8 @@ namespace FallendeBloecke.Models
 
         public static Vector2 MapSize = new(10f * BlockSize.X, 18f * BlockSize.Y);
 
+        public static Vector2 ShapeOrigin = new(0, 0);
+        public static Vector2 ShapeVelocity = new(1, 1);
+
     }
 }
