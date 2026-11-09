@@ -9,7 +9,6 @@ namespace FallendeBloecke.Models
 {
     public class Game
     {
-        public Camera2D Kamera = new Camera2D(new Vector2(0.5f * Common.ScreenWidth, 0.5f * Common.ScreenHeight), new Vector2(0, 0), 0f, 1f);
         public ShapeManager ShapeManag = new ShapeManager();
 
         public void Init()
@@ -17,75 +16,90 @@ namespace FallendeBloecke.Models
             // Load Textures
             ResourceManager.LoadTexture("Textures/BlockSprite.png", "block");
 
-            uint id = 0;
-            bool wasMoved = false;
-            id = ShapeManag.CreateShape(ShapeType.I);
-            wasMoved = ShapeManag.MoveShape(id, new(-5, -7));
-            id = ShapeManag.CreateShape(ShapeType.J);
-            wasMoved = ShapeManag.MoveShape(id, new(-2, -7));
-            id = ShapeManag.CreateShape(ShapeType.L);
-            wasMoved = ShapeManag.MoveShape(id, new(0, -7));
-            id = ShapeManag.CreateShape(ShapeType.O);
-            wasMoved = ShapeManag.MoveShape(id, new(-4, 0));
-            id = ShapeManag.CreateShape(ShapeType.S);
-            wasMoved = ShapeManag.MoveShape(id, new(0, 0));
-            id = ShapeManag.CreateShape(ShapeType.T);
-            wasMoved = ShapeManag.MoveShape(id, new(-2, 5));
-            id = ShapeManag.CreateShape(ShapeType.Z);
-            wasMoved = ShapeManag.MoveShape(id, new(3, 5));
-            if (!wasMoved)
-            {
-                Console.WriteLine("[ERROR] Failed to move shape!");
-            }
         }
         public void DrawGrid()
         {
-            Vector2 topLeftPos = new Vector2(-0.5f * Common.MapSize.X, -0.5f * Common.MapSize.Y + Common.BlockSize.Y - Common.BlockSize.Y);
+            Vector2 topLeftPos = new Vector2(-0.5f * Map.Size.X, -0.5f * Map.Size.Y + Common.BlockSize.Y - Common.BlockSize.Y);
             Vector2 startPos = topLeftPos;
             Vector2 endPos = new Vector2(0);
-            int height = (int)(Math.Round(Common.MapSize.Y / Common.BlockSize.Y) + 1);
+            int height = (int)(Math.Round(Map.Size.Y / Common.BlockSize.Y) + 1);
             for (int y = 0; y < height; ++y)
             {
                 startPos = new(topLeftPos.X, topLeftPos.Y + y * Common.BlockSize.Y);
-                endPos = new(startPos.X + Common.MapSize.X, startPos.Y);
+                endPos = new(startPos.X + Map.Size.X, startPos.Y);
                 Raylib.DrawLineV(startPos, endPos, Color.White);
             }
             startPos = topLeftPos;
-            int width = (int)(Math.Round(Common.MapSize.X / Common.BlockSize.X) + 1);
+            int width = (int)(Math.Round(Map.Size.X / Common.BlockSize.X) + 1);
             for (int x = 0; x < width; ++x)
             {
                 startPos = new(topLeftPos.X + x * Common.BlockSize.X, topLeftPos.Y);
-                endPos = new(startPos.X, startPos.Y + Common.MapSize.Y);
+                endPos = new(startPos.X, startPos.Y + Map.Size.Y);
                 Raylib.DrawLineV(startPos, endPos, Color.White);
             }
-
+            // Add outer edges to Map class
+            for (int i = 0; i < Common.Dir_n; ++i)
+            {
+                Edge edge = new();
+                if (i == 0)
+                {
+                    // North
+                    edge = new(topLeftPos,
+                        new(topLeftPos.X + Map.Size.X, topLeftPos.Y), (Dir_e)i);
+                }
+                else if (i == 1)
+                {
+                    // East
+                    edge = new(new(topLeftPos.X + Map.Size.X, topLeftPos.Y),
+                        new(topLeftPos.X + Map.Size.X, topLeftPos.Y + Map.Size.Y), (Dir_e)i);
+                }
+                else if (i == 2)
+                {
+                    // South 
+                    edge = new(new(topLeftPos.X, topLeftPos.Y + Map.Size.Y),
+                        new(topLeftPos.X + Map.Size.X, topLeftPos.Y + Map.Size.Y), (Dir_e)i);
+                }
+                else
+                {
+                    // West 
+                    edge = new(topLeftPos,
+                        new(topLeftPos.X, topLeftPos.Y + Map.Size.Y), (Dir_e)i);
+                }
+            }
         }
 
         public void ProcessInput(float dt)
         {
-            if (Raylib.IsKeyDown(KeyboardKey.D) || Raylib.IsKeyDown(KeyboardKey.Right))
+            // Player controls an shape
+            if (ShapeManag.CurrentShapeID > 0)
             {
-
+                if (Raylib.IsKeyPressed(KeyboardKey.D) || Raylib.IsKeyPressed(KeyboardKey.Right))
+                {
+                    ShapeManag.MoveCurrentShape(Dir_e.East);
+                }
+                if (Raylib.IsKeyPressed(KeyboardKey.S) || Raylib.IsKeyPressed(KeyboardKey.Down))
+                {
+                    ShapeManag.MoveCurrentShape(Dir_e.South);
+                }
+                if (Raylib.IsKeyPressed(KeyboardKey.A) || Raylib.IsKeyPressed(KeyboardKey.Left))
+                {
+                    ShapeManag.MoveCurrentShape(Dir_e.West);
+                }
             }
         }
 
         public void Update(float dt)
         {
+            ShapeManag.Update(dt);
+        }
 
-            Raylib.BeginDrawing();
-            Raylib.ClearBackground(Color.Black);
-
-            Raylib.BeginMode2D(Kamera);
-
+        public void Draw()
+        {
             DrawGrid();
 
             ShapeManag.Draw();
 
-            Raylib.EndMode2D();
-
-            Raylib.DrawText("Fallende Blöcke", 12, 12, 20, Color.Black);
-
-            Raylib.EndDrawing();
+           // Map.DrawBoundaryRecs();
         }
     }
 }

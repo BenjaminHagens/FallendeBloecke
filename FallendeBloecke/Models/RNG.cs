@@ -8,14 +8,17 @@ namespace FallendeBloecke.Models
     public class RNG
     {
         /// <summary>
-        /// Generiert eine randomisierte Zahl, in dem Bereich zwischen "von" und "bis"
+        /// Generates an number greater or equal as minValue and
+        /// less or equal then maxValue
         /// </summary>
-        /// <param name="von"></param>
-        /// <param name="bis"></param>
+        /// <param name="minValue"></param>
+        /// <param name="maxValue"></param>
         /// <returns>uint</returns>
-        public uint GeneriereRNG(uint von, uint bis)
+        public static int GenerateRNG(int minValue, int maxValue)
         {
-            uint res = 0;
+            Random rand = new Random();
+            maxValue++;
+            int res = rand.Next(minValue, maxValue);
 
             return res;
         }

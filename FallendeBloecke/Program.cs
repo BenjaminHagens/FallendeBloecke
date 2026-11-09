@@ -19,22 +19,32 @@ internal class Program
         int monitorHeight = Raylib.GetMonitorHeight(monitor);
         Raylib.SetWindowPosition((int)Math.Round(0.5f * monitorWidth - 0.5f * Common.ScreenWidth), (int)Math.Round(0.5f * monitorHeight - 0.51f * Common.ScreenHeight));
 
+
+       Camera2D Camera = new Camera2D(new Vector2(0.5f * Common.ScreenWidth, 0.5f * Common.ScreenHeight), new Vector2(0, 0), 0f, 1f);
+
         Game game = new Game();
 
         game.Init();
 
-        float deltaTime = 0f;
-        float lastFrame = 0f;
 
         while (!Raylib.WindowShouldClose())
         {
-            float currentFrame = Raylib.GetFrameTime();
-            deltaTime = currentFrame - lastFrame;
-            lastFrame = currentFrame;
+            float deltaTime= Raylib.GetFrameTime();
 
             game.ProcessInput(deltaTime);
 
             game.Update(deltaTime);
+
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.Black);
+
+            Raylib.BeginMode2D(Camera);
+
+            game.Draw();
+
+            Raylib.EndMode2D();
+
+            Raylib.EndDrawing();
         }
 
         Raylib.CloseWindow();

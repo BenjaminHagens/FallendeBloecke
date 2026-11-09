@@ -2,42 +2,41 @@
 using System.Numerics;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 using FallendeBloecke.Models;
+using Raylib_cs;
+using Ray = Raylib_cs;
 
 namespace FallendeBloecke.Shapes
 {
-    public enum ShapeType { Empty, I, J, L, O, S, T, Z };
+    public enum Type { Empty, I, J, L, O, S, T, Z };
 
     public class Shape
     {
-        public ShapeType Type;
+        // private 
+        private float DefaultFallTime = Common.DefaultMoveTime;
+        // public
+        public float FallTime;
+        public Type ShapeType;
         public uint ID;
         public Vector2 Velocity;
         public Vector2 Origin;
         public Block BlockProps;
         public List<Vector2> Indices = new();
         public List<Block> Blocks = new();
-        public Shape(ShapeType type, uint id, Vector2 origin, Vector2 velocity, Block blockProps, List<Vector2> indices)
+
+        public Shape(Type type, uint shapeID, Vector2 origin, Vector2 velocity, Block blockProps, List<Vector2> indices)
         {
-            this.Type = type;
-            this.ID = id;
-            this.Origin = origin;
-            this.Velocity = velocity;
-            this.BlockProps = blockProps;
-            this.Indices = indices;
+            ShapeType = type;
+            ID = shapeID;
+            Origin = origin;
+            Velocity = velocity;
+            BlockProps = blockProps;
+            Indices = indices;
+            FallTime = DefaultFallTime;
 
-            this.Init();
+            Init();
         }
-
-        public void UpdatePosition(Vector2 factor)
-        {
-            foreach (Block block in Blocks)
-            {
-                block.Position.X += factor.X * BlockProps.Größe.X;
-                block.Position.Y += factor.Y * BlockProps.Größe.Y;
-            }
-        }
-
         public void Init()
         {
             Blocks.Clear();
@@ -49,6 +48,86 @@ namespace FallendeBloecke.Shapes
             }
         }
 
+
+        public bool ShouldFall()
+        {
+            if (FallTime <= 0.0f)
+            {
+                ResetFallTime();
+                return true;
+            }
+            return false;
+        }
+
+        public void UpdateMoveTime(float dt)
+        {
+            FallTime -= dt;
+        }
+
+        public void Move(Dir_e dir)
+        {
+            Vector2 factor = new(0, 0);
+            switch (dir)
+            {
+                case Dir_e.North:
+                    factor.Y -= 1;
+                    break;
+                case Dir_e.East:
+                    factor.X += 1;
+                    break;
+                case Dir_e.South:
+                    factor.Y += 1;
+                    break;
+                case Dir_e.West:
+                    factor.X -= 1;
+                    break;
+                default:
+                    Log.Error("Unexpected move direction");
+                    break;
+            }
+            UpdatePosition(factor);
+            Log.Info("Shape should have moved");
+        }
+
+        public Block GetOuterBlock(Dir_e dir)
+        {
+            Vector2 maxPos = new();
+            int idx = 0;
+            bool isFirst = true;
+            for (int i = 0; i < Blocks.Count; ++i)
+            {
+                Block block = Blocks[i];
+                if (isFirst)
+                {
+                    maxPos = block.Position;
+                    isFirst = false;
+                }
+                else
+                {
+                    if (dir == Dir_e.North && block.Position.Y <= maxPos.Y
+                        || dir == Dir_e.East && block.Position.X >= maxPos.X
+                        || dir == Dir_e.South && block.Position.Y >= maxPos.Y
+                        || dir == Dir_e.West && block.Position.X <= maxPos.X)
+                    {
+                        maxPos = block.Position;
+                        idx = i;
+                    }
+                }
+            }
+
+            return Blocks[idx];
+        }
+
+        public void UpdatePosition(Vector2 factor)
+        {
+            foreach (Block block in Blocks)
+            {
+                block.Position.X += factor.X * Common.BlockSize.X;
+                block.Position.Y += factor.Y * Common.BlockSize.Y;
+            }
+        }
+
+
         public void Draw()
         {
             foreach (Block block in this.Blocks)
@@ -56,6 +135,12 @@ namespace FallendeBloecke.Shapes
                 block.Draw();
             }
 
+        }
+
+        //  private 
+        private void ResetFallTime()
+        {
+            FallTime = DefaultFallTime;
         }
     }
 }
