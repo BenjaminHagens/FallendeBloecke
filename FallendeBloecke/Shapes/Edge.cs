@@ -6,7 +6,6 @@ using System.Text;
 
 namespace FallendeBloecke.Shapes
 {
-    public enum Dir_e { North, East, South, West };
     public struct Edge
     {
         public Vector2 Start;
@@ -30,8 +29,6 @@ namespace FallendeBloecke.Shapes
         {
             switch (b.Dir)
             {
-                case Dir_e.North:
-                    return (a.Start.Y < b.Start.Y);
                 case Dir_e.East:
                     return (a.Start.X > b.Start.X);
                 case Dir_e.South:
@@ -47,8 +44,6 @@ namespace FallendeBloecke.Shapes
         {
             switch (side)
             {
-                case Dir_e.North:
-                    return "North";
                 case Dir_e.East:
                     return "East";
                 case Dir_e.South:

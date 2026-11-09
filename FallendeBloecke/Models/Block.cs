@@ -12,13 +12,13 @@ namespace FallendeBloecke.Models
     {
         public Vector2 Position;
         public Vector2 Size = Common.BlockSize;
-        public Color Farbton;
+        public Color ColorTint;
         public Texture2D Textur;
 
         public Block(Vector2 pos, Color colorTint, Texture2D textur)
         {
             this.Position = pos;
-            this.Farbton = colorTint;
+            this.ColorTint = colorTint;
             this.Textur = textur;
         }
 
@@ -32,10 +32,14 @@ namespace FallendeBloecke.Models
             return new Vector2(Position.X - 0.5f * Size.X, Position.Y + 0.5f * Size.Y);
         }
 
-        public void Draw()
+        public void Draw(Color? colorTint = null )
         {
             // Raylib.DrawRectangleLines((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y, BlockColor);
-            Raylib.DrawTextureRec(Textur, GetRectangle(), Position, Farbton);
+            if (colorTint != null)
+            {
+                ColorTint = (Color)colorTint;
+            }
+            Raylib.DrawTextureRec(Textur, GetRectangle(), Position, ColorTint);
         }
 
     }

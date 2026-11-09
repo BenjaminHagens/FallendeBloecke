@@ -15,10 +15,10 @@ namespace FallendeBloecke.Models
         // Block
         public static Vector2 BlockSize = new(50f, 50f);
         // Shape
-        public static Vector2 ShapeOrigin = new(0 * BlockSize.X, -7 * BlockSize.Y);
+        public static Vector2 ShapeOrigin = Map.GetShapeOrigin();
         public static Vector2 ShapeVelocity = new(1, 1);
         // Direction
-        public static int Dir_n = 4;
+        public static int Dir_n = 3;
         // Time defaults
         public static float DefaultMoveTime = 1.0f;
         public static float DefaultSpawnTime = 1.0f;

@@ -10,6 +10,7 @@ using Ray = Raylib_cs;
 namespace FallendeBloecke.Shapes
 {
     public enum Type { Empty, I, J, L, O, S, T, Z };
+    public enum Dir_e { East, South, West };
 
     public class Shape
     {
@@ -37,13 +38,14 @@ namespace FallendeBloecke.Shapes
 
             Init();
         }
+
         public void Init()
         {
             Blocks.Clear();
 
             foreach (Vector2 index in Indices)
             {
-                Block block = new Block(new(Origin.X + index.X * Common.BlockSize.X, Origin.Y + index.Y * Common.BlockSize.Y), BlockProps.Farbton, BlockProps.Textur);
+                Block block = new Block(new(Origin.X + index.X * Common.BlockSize.X, Origin.Y + index.Y * Common.BlockSize.Y), BlockProps.ColorTint, BlockProps.Textur);
                 Blocks.Add(block);
             }
         }
@@ -69,9 +71,6 @@ namespace FallendeBloecke.Shapes
             Vector2 factor = new(0, 0);
             switch (dir)
             {
-                case Dir_e.North:
-                    factor.Y -= 1;
-                    break;
                 case Dir_e.East:
                     factor.X += 1;
                     break;
@@ -104,8 +103,7 @@ namespace FallendeBloecke.Shapes
                 }
                 else
                 {
-                    if (dir == Dir_e.North && block.Position.Y <= maxPos.Y
-                        || dir == Dir_e.East && block.Position.X >= maxPos.X
+                    if (dir == Dir_e.East && block.Position.X >= maxPos.X
                         || dir == Dir_e.South && block.Position.Y >= maxPos.Y
                         || dir == Dir_e.West && block.Position.X <= maxPos.X)
                     {

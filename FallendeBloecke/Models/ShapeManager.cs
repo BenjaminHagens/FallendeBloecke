@@ -129,11 +129,13 @@ namespace FallendeBloecke.Models
             {
                 if (shape.ID != CurrentShapeID)
                 {
-                    Block block = shape.GetOuterBlock(dir);
-                    if (Raylib.CheckCollisionRecs(rect, block.GetRectangle()))
+                    foreach (Block block in shape.Blocks)
                     {
-                        Log.Info("Move position is NOT free");
-                        return false;
+                        if (Raylib.CheckCollisionRecs(rect, block.GetRectangle()))
+                        {
+                            Log.Info("Move position is NOT free");
+                            return false;
+                        }
                     }
                 }
             }
@@ -152,72 +154,75 @@ namespace FallendeBloecke.Models
             Shape shape = Shapes[idx];
             Block block = shape.GetOuterBlock(dir);
             Rectangle rect = block.GetRectangle();
-            bool isCollision = false;
+            Rectangle bottomRect = new(rect.X, rect.Y + Common.BlockSize.Y, Common.BlockSize);
+            bool onGround = Map.CheckBoundaryCollision(Dir_e.South, bottomRect) ||
+                                  !IsMovePositionFree(Dir_e.South, bottomRect);
+            if (onGround)
+            {
+                ResetCurrentShape();
+                return false;
+            }
+            bool movePosFree = false;
+            bool insideMap = false;
             switch (dir)
             {
-                case Dir_e.North:
-                    rect.Y -= Common.BlockSize.Y;
-                    Log.Info("Not allowed to move up");
-                    return false;
                 case Dir_e.East:
                     rect.X += Common.BlockSize.X;
-                    isCollision = (!Map.CheckBoundaryCollision(dir, rect) && IsMovePositionFree(dir, rect));
-                    return isCollision;
+                    break;
                 case Dir_e.South:
                     rect.Y += Common.BlockSize.Y;
-                    isCollision = (!Map.CheckBoundaryCollision(dir, rect) && IsMovePositionFree(dir, rect));
-                    if (isCollision)
-                    {
-                        ResetCurrentShape();
-                    }
-                    return isCollision;
+                    break;
                 case Dir_e.West:
                     rect.X -= Common.BlockSize.X;
-                    isCollision = (!Map.CheckBoundaryCollision(dir, rect) && IsMovePositionFree(dir, rect));
-                    return isCollision;
+                    break;
                 default:
                     Log.Error("Failed: Unexpected direction");
                     return false;
             }
+            insideMap = !Map.CheckBoundaryCollision(dir, rect);
+            movePosFree = IsMovePositionFree(dir, rect);
+            bool canMove = insideMap && movePosFree;
+
+            return canMove;
         }
 
         private List<Vector2> GetDefaultIndices(Type type)
         {
             switch (type)
             {
-                case FallendeBloecke.Shapes.Type.I:
+                case Type.I:
                     return new() {
                         new(0,-2), new(0,-1),
                         new(0, 0), new(0, 1)
                     };
-                case FallendeBloecke.Shapes.Type.J:
+                case Type.J:
                     return new() {
                         new(0,-2),
                         new(0,-1),
              new(0, 0), new(-1, 0)
                     };
-                case FallendeBloecke.Shapes.Type.L:
+                case Type.L:
                     return new() {
                         new(0,-2),
                         new(0,-1),
                         new(0, 0), new(1, 0)
                     };
-                case FallendeBloecke.Shapes.Type.O:
+                case Type.O:
                     return new() {
                         new(0,-1), new(1,-1),
                         new(0, 0), new(1, 0)
                     };
-                case FallendeBloecke.Shapes.Type.S:
+                case Type.S:
                     return new() {
                                     new(0,-1), new(1,-1),
                          new(0, 0), new(-1, 0)
                     };
-                case FallendeBloecke.Shapes.Type.T:
+                case Type.T:
                     return new() {
                         new(-1,-1), new(0,-1),new(1, -1),
                                     new(0, 0)
                     };
-                case FallendeBloecke.Shapes.Type.Z:
+                case Type.Z:
                     return new() {
                         new(-1,-1), new(0,-1),
                                    new(0, 0), new(1, 0)

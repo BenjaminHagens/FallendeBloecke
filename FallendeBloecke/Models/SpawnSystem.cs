@@ -7,18 +7,19 @@ namespace FallendeBloecke.Models
     public class SpawnSystem
     {
         private float DefaultSpawnTime;
-        private float SpawnTime =0.0f;
+        private float SpawnTime;
         
         public SpawnSystem(float spawnTime)
         {
-            this.DefaultSpawnTime = spawnTime;
+            DefaultSpawnTime = spawnTime;
+            SpawnTime = DefaultSpawnTime;
         }
 
         public bool CanSpawn()
         {
             if (SpawnTime <= 0.0f)
             {
-                ResetTimeSpawnNext();
+                ResetSpawnTime();
 
                 return true;
             }
@@ -30,7 +31,7 @@ namespace FallendeBloecke.Models
             this.SpawnTime -= dt;
         }
 
-        private void ResetTimeSpawnNext()
+        private void ResetSpawnTime()
         {
             this.SpawnTime = DefaultSpawnTime;
         }
