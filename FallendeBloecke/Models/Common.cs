@@ -15,7 +15,6 @@ namespace FallendeBloecke.Models
         // Block
         public static Vector2 BlockSize = new(50f, 50f);
         // Shape
-        public static Vector2 ShapeOrigin = Map.GetShapeOrigin();
         public static Vector2 ShapeVelocity = new(1, 1);
         // Direction
         public static int Dir_n = 3;

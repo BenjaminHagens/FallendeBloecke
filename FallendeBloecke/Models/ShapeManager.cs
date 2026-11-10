@@ -11,24 +11,47 @@ namespace FallendeBloecke.Models
 {
     public class ShapeManager
     {
-        // Private
-        private List<Type> ShapeTypes = new() { Type.I, Type.J, Type.L, Type.O, Type.S, Type.T, Type.Z };
-        private uint LastCreatedID = 0;
+        // PRIVATE 
         private SpawnSystem SpawnSys = new(Common.DefaultSpawnTime);
-        // Public
-        public List<Shape> Shapes = new();
-        public uint CurrentShapeID = 0;
+
+        // PUBLIC 
+        public Block[,] Blocks = new Block[(int)Map.Height, (int)Map.Width];
+        public Shape? CurrentShape = null;
 
 
         // #################### 
         //      PUBLIC
         // ####################
 
+        public void Init()
+        {
+            Vector2 pos = Map.TopLeftPosition;
+
+            for (int y = 0; y < Map.Height; ++y)
+            {
+                for (int x = 0; x < Map.Width; ++x)
+                {
+                    Blocks[y, x] = new(new Vector2(pos.X + x * Common.BlockSize.X, pos.Y + y * Common.BlockSize.Y), Color.Red, ResourceManager.GetTexture("block")); ;
+                }
+            }
+        }
+
         public void Draw()
         {
-            foreach (Shape shape in Shapes)
+            for (int y = 0; y < Blocks.GetLength(0); ++y)
             {
-                shape.Draw();
+                for (int x = 0; x < Blocks.GetLength(1); ++x)
+                {
+                    Block block = Blocks[y, x];
+                    if (!block.Empty)
+                    {
+                        block.Draw();
+                    }
+                }
+            }
+            if (CurrentShape != null)
+            {
+                CurrentShape.Draw();
             }
         }
 
@@ -36,19 +59,18 @@ namespace FallendeBloecke.Models
         {
             HandleShapeSpawn(dt);
 
-            foreach (Shape shape in Shapes)
+            if (CurrentShape != null)
             {
-                if (shape.ID == CurrentShapeID)
+                CheckGroundCollision();
+
+                CurrentShape.UpdateMoveTime(dt);
+
+                if (CurrentShape.ShouldFall())
                 {
-                    shape.UpdateMoveTime(dt);
-                    if (shape.ShouldFall())
+
+                    if (CanMoveAtDirection(Dir_e.South))
                     {
-                        Log.Info("Shape should fall");
-                        if (CanMoveAtDirection(Dir_e.South))
-                        {
-                            Log.Info("Shape CanMove");
-                            shape.Move(Dir_e.South);
-                        }
+                        CurrentShape.Move(Dir_e.South);
                     }
                 }
             }
@@ -56,82 +78,85 @@ namespace FallendeBloecke.Models
 
         public void MoveCurrentShape(Dir_e dir)
         {
-            int idx = GetShapeIndexByID(CurrentShapeID);
-            if (idx < 0)
+            if (CurrentShape != null)
             {
-                Log.Error("Failed to get current shape");
-                return;
+                if (!CanMoveAtDirection(dir))
+                {
+                    Log.Info($"Shape can't move at direction '{Shape.GetDirectionString(dir)}'");
+                    return;
+                }
+                CurrentShape.Move(dir);
             }
-            Shape shape = Shapes[idx];
-            if (!CanMoveAtDirection(dir))
-            {
-                Log.Info($"Shape can't move at direction '{Edge.GetDirectionString(dir)}'");
-                return;
-            }
-            shape.Move(dir);
         }
 
         public void CreateRandomShape()
         {
             int rng = RNG.GenerateRNG((int)Type.Empty + 1, (int)Type.Z);
             Type type = (Type)rng;
-            CurrentShapeID = CreateShape(type);
+            CreateShape(type);
         }
 
-        public uint CreateShape(Type type)
+        public void CreateShape(Type type)
         {
-            uint id = CreateShapeID();
             Color colorTint = GetDefaultColorTint(type);
             Block blockProps = new(new(0), colorTint, ResourceManager.GetTexture("block"));
             List<Vector2> indices = GetDefaultIndices(type);
-            Shape shape = new Shape(type, id, Common.ShapeOrigin, Common.ShapeVelocity, blockProps, indices);
-            Shapes.Add(shape);
-            Debug.Assert(Shapes.Count != 0, "Failed to create a new shape");
-            return shape.ID;
-        }
-
-        /* Creates a new Shape ID, updates the last one.
-         * Returns unsigned int. */
-        public uint CreateShapeID()
-        {
-            uint id = ++LastCreatedID;
-            Debug.Assert((id != 0), "Created shapeID can't be '0'");
-            LastCreatedID = id;
-
-            return id;
-        }
-
-        public int GetShapeIndexByID(uint shapeID)
-        {
-            for (int i = 0; i < Shapes.Count; ++i)
-            {
-                Shape current = Shapes[i];
-                if (current.ID == shapeID)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            CurrentShape = new Shape(type, Map.ShapeOrigin, Common.ShapeVelocity, blockProps, indices);
         }
 
         // #################### 
         //      PRIVATE
         // ####################
+        private (int, int) GetIndexFromBlockPosition(Vector2 pos)
+        {
+            Vector2 topLeftPos = Map.TopLeftPosition;
+            pos.X -= topLeftPos.X;
+            pos.Y -= topLeftPos.Y;
+            int x = (int)Math.Round(pos.X / Common.BlockSize.X);
+            int y = (int)Math.Round(pos.Y / Common.BlockSize.Y);
+            return new(x, y);
+        }
+
         private void ResetCurrentShape()
         {
-            CurrentShapeID = 0;
+            if (CurrentShape != null)
+            {
+                foreach (Block block in CurrentShape.Blocks)
+                {
+                    (int, int) index = GetIndexFromBlockPosition(block.Position);
+                    Log.Info($"Block index (x, y): '({index.Item1}, {index.Item2})'");
+                    Blocks[index.Item2, index.Item1].ColorTint = block.ColorTint;
+                    Blocks[index.Item2, index.Item1].Empty = false;
+                }
+
+                CurrentShape = null;
+            }
+        }
+
+        private void HandleShapeSpawn(float dt)
+        {
+            if (CurrentShape == null)
+            {
+                SpawnSys.Update(dt);
+            }
+
+            if (SpawnSys.CanSpawn())
+            {
+                CreateRandomShape();
+            }
         }
 
         private bool IsMovePositionFree(Dir_e dir, Rectangle rect)
         {
-            foreach (Shape shape in Shapes)
+            if (CurrentShape != null)
             {
-                if (shape.ID != CurrentShapeID)
+                for (int y = 0; y < Blocks.GetLength(0); ++y)
                 {
-                    foreach (Block block in shape.Blocks)
+                    for (int x = 0; x < Blocks.GetLength(1); ++x)
                     {
-                        if (Raylib.CheckCollisionRecs(rect, block.GetRectangle()))
+                        Block block = Blocks[y, x];
+
+                        if (!block.Empty && Raylib.CheckCollisionRecs(rect, block.GetRectangle()))
                         {
                             Log.Info("Move position is NOT free");
                             return false;
@@ -143,47 +168,62 @@ namespace FallendeBloecke.Models
             return true;
         }
 
+        private bool CheckGroundCollision()
+        {
+            if (CurrentShape != null)
+            {
+                List<Block> bottomBlocks = CurrentShape.GetBottomBlocks();
+                foreach (Block block in bottomBlocks)
+                {
+                    Rectangle rect = block.GetRectangle();
+                    Rectangle bottomRect = new(rect.X, rect.Y + Common.BlockSize.Y, Common.BlockSize);
+                    bool onGround = Map.CheckBoundaryCollision(Dir_e.South, bottomRect) ||
+                                          !IsMovePositionFree(Dir_e.South, bottomRect);
+                    if (onGround)
+                    {
+                        Log.Info("Shape reset: Shape on ground");
+                        ResetCurrentShape();
+                        return false;
+                    }
+                }
+            }
+            return false;
+        }
+
         private bool CanMoveAtDirection(Dir_e dir)
         {
-            int idx = GetShapeIndexByID(CurrentShapeID);
-            if (idx < 0)
+            if (CurrentShape != null)
             {
-                Log.Error("Failed to get current shape");
-                return false;
-            }
-            Shape shape = Shapes[idx];
-            Block block = shape.GetOuterBlock(dir);
-            Rectangle rect = block.GetRectangle();
-            Rectangle bottomRect = new(rect.X, rect.Y + Common.BlockSize.Y, Common.BlockSize);
-            bool onGround = Map.CheckBoundaryCollision(Dir_e.South, bottomRect) ||
-                                  !IsMovePositionFree(Dir_e.South, bottomRect);
-            if (onGround)
-            {
-                ResetCurrentShape();
-                return false;
-            }
-            bool movePosFree = false;
-            bool insideMap = false;
-            switch (dir)
-            {
-                case Dir_e.East:
-                    rect.X += Common.BlockSize.X;
-                    break;
-                case Dir_e.South:
-                    rect.Y += Common.BlockSize.Y;
-                    break;
-                case Dir_e.West:
-                    rect.X -= Common.BlockSize.X;
-                    break;
-                default:
-                    Log.Error("Failed: Unexpected direction");
-                    return false;
-            }
-            insideMap = !Map.CheckBoundaryCollision(dir, rect);
-            movePosFree = IsMovePositionFree(dir, rect);
-            bool canMove = insideMap && movePosFree;
+                foreach (Block block in CurrentShape.Blocks)
+                {
+                    Rectangle rect = block.GetRectangle();
 
-            return canMove;
+                    bool movePosFree = false;
+                    bool insideMap = false;
+                    switch (dir)
+                    {
+                        case Dir_e.East:
+                            rect.X += Common.BlockSize.X;
+                            break;
+                        case Dir_e.South:
+                            rect.Y += Common.BlockSize.Y;
+                            break;
+                        case Dir_e.West:
+                            rect.X -= Common.BlockSize.X;
+                            break;
+                        default:
+                            Log.Error("Failed: Unexpected direction");
+                            return false;
+                    }
+                    insideMap = !Map.CheckBoundaryCollision(dir, rect);
+                    movePosFree = IsMovePositionFree(dir, rect);
+                    bool canMove = insideMap && movePosFree;
+
+                    return canMove;
+                }
+            }
+            Log.Error("Failed to get CurrentShape (null)");
+            return false;
         }
 
         private List<Vector2> GetDefaultIndices(Type type)
@@ -255,18 +295,6 @@ namespace FallendeBloecke.Models
                     return Color.White;
             }
 
-        }
-        private void HandleShapeSpawn(float dt)
-        {
-            if (CurrentShapeID == 0)
-            {
-                SpawnSys.Update(dt);
-
-                if (SpawnSys.CanSpawn())
-                {
-                    CreateRandomShape();
-                }
-            }
         }
     }
 }

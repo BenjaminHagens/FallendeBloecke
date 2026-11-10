@@ -9,7 +9,12 @@ namespace FallendeBloecke.Models
 {
     public class Map
     {
-        public static Vector2 Size = new(10f * Common.BlockSize.X, 18f * Common.BlockSize.Y);
+        // PUBLIC 
+        public static float Width = 10f;
+        public static float Height = 18f;
+        public static Vector2 Size = new(Width * Common.BlockSize.X, Height * Common.BlockSize.Y);
+        public static Vector2 TopLeftPosition = new Vector2(-0.5f * Map.Size.X, -0.5f * Map.Size.Y);
+        public static Vector2 ShapeOrigin = new Vector2(Origin.X, Origin.Y - 0.5f * Size.Y - Common.BlockSize.Y);
         public static Vector2 Origin = new(0, 0);
         public static Rectangle Rect = new(Origin, Size);
         public static Rectangle[] BoundaryArr = {
@@ -17,11 +22,6 @@ namespace FallendeBloecke.Models
             new (new (Rect.X - 0.5f * Size.X, Rect.Y + 0.5f * Size.Y), new (Size.X, 0.5f* Size.Y)), // South 
             new (new (Rect.X - 1.5f * Size.X, Rect.Y - 0.5f* Size.Y ), new (Size.X, Size.Y)), // West
         };
-
-        public static Vector2 GetShapeOrigin()
-        {
-            return new Vector2(Origin.X, Origin.Y - 0.5f * Size.Y - Common.BlockSize.Y);
-        }
 
         public static void DrawBoundaryRecs()
         {

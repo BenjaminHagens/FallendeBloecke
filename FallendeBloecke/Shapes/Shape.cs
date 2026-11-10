@@ -19,17 +19,15 @@ namespace FallendeBloecke.Shapes
         // public
         public float FallTime;
         public Type ShapeType;
-        public uint ID;
         public Vector2 Velocity;
         public Vector2 Origin;
         public Block BlockProps;
         public List<Vector2> Indices = new();
         public List<Block> Blocks = new();
 
-        public Shape(Type type, uint shapeID, Vector2 origin, Vector2 velocity, Block blockProps, List<Vector2> indices)
+        public Shape(Type type, Vector2 origin, Vector2 velocity, Block blockProps, List<Vector2> indices)
         {
             ShapeType = type;
-            ID = shapeID;
             Origin = origin;
             Velocity = velocity;
             BlockProps = blockProps;
@@ -39,13 +37,34 @@ namespace FallendeBloecke.Shapes
             Init();
         }
 
+        public List<Block> GetBottomBlocks()
+        {
+            List<Block> bottomBlocks = new();
+
+            return bottomBlocks;
+        }
+
+        public static string GetDirectionString(Dir_e side)
+        {
+            switch (side)
+            {
+                case Dir_e.East:
+                    return "East";
+                case Dir_e.South:
+                    return "South";
+                case Dir_e.West:
+                    return "West";
+                default:
+                    return "Unknown";
+            }
+        }
         public void Init()
         {
             Blocks.Clear();
 
             foreach (Vector2 index in Indices)
             {
-                Block block = new Block(new(Origin.X + index.X * Common.BlockSize.X, Origin.Y + index.Y * Common.BlockSize.Y), BlockProps.ColorTint, BlockProps.Textur);
+                Block block = new Block(new(Origin.X + index.X * Common.BlockSize.X, Origin.Y + index.Y * Common.BlockSize.Y), BlockProps.ColorTint,  BlockProps.Texture);
                 Blocks.Add(block);
             }
         }
@@ -124,6 +143,7 @@ namespace FallendeBloecke.Shapes
                 block.Position.Y += factor.Y * Common.BlockSize.Y;
             }
         }
+
 
 
         public void Draw()
